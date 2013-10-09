@@ -1,0 +1,169 @@
+<html>
+ <head>
+  <script type="application/javascript">
+
+    var currentBearing = 0 ;
+
+    function bearingCompass(){
+      var now = new Date();
+      var ctx = document.getElementById('canvas').getContext('2d');
+      ctx.save();
+      ctx.clearRect(0,0,500,500);
+      ctx.translate(250,250);
+      ctx.scale(1,1);
+      ctx.rotate(-Math.PI/2);
+      ctx.strokeStyle = "black";
+      ctx.fillStyle = "white";
+      ctx.lineWidth = 10;
+      ctx.lineCap = "square";
+
+      
+      ctx.save();
+      for (var i=0;i<24;i++){
+        ctx.beginPath();
+        ctx.rotate(Math.PI/12);
+        ctx.moveTo(200,0);
+        ctx.lineTo(220,0);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      
+      ctx.save();
+      ctx.lineWidth = 5;
+      for (i=0;i<60;i++){
+        if (i%5!=5) {
+          ctx.beginPath();
+          ctx.moveTo(217,0);
+          ctx.lineTo(220,0);
+          ctx.stroke();
+        }
+        ctx.rotate(Math.PI/24);
+      }
+      ctx.restore();
+
+      addShip();
+      
+    }
+
+    function addShip(){
+
+      var ctx = document.getElementById('canvas').getContext('2d');
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(-12,-12);
+      ctx.lineTo(20,0);
+      ctx.lineTo(-12,12);
+      ctx.lineTo(-12,-12);
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+
+    }
+
+    function rotateShip(bearing){
+
+      var ctx = document.getElementById('canvas').getContext('2d');
+      ctx.save();
+      ctx.clearRect(-50,-50,100,100);
+      ctx.rotate( bearing * -Math.PI /180);
+
+      currentBearing = currentBearing + bearing;
+
+      if(currentBearing > 360){currentBearing = currentBearing - 360}
+      if(currentBearing < 0 ){currentBearing = currentBearing + 360}
+      
+      addShip();
+
+
+    }
+
+    function distanceToBearing(bearing){
+
+      var cur = currentBearing;
+      var fin = bearing;
+      var portDistance = 0;
+      var starDistance = 0;
+
+      if(cur < fin) {
+        starDistance = Math.abs( 360 - (fin - cur) );
+        portDistance = Math.abs( fin - cur );
+      }
+
+      if(cur > fin) {
+        starDistance = Math.abs( fin - cur );
+        portDistance = Math.abs( 360 - Math.abs(fin - cur) )
+      }
+      
+
+      if(portDistance < starDistance){
+        return true
+      }else{
+        return false
+      }
+
+
+    }
+
+    function animateShip(finalBearing){
+
+      var animation = null;
+      var stepsToFinalPort = Math.abs( finalBearing - currentBearing );
+      var stepsToFinalStarboard = Math.abs(currentBearing - (( 360 + currentBearing ) - finalBearing));
+
+      function nextDegree(){
+        if(finalBearing === undefined || currentBearing === finalBearing){
+          clearInterval(animation);
+        }else{
+            if( distanceToBearing(finalBearing) ){
+              rotateShip(+1)
+            }else{
+              rotateShip(-1)
+            }
+        }
+        if(currentBearing == finalBearing){
+          clearInterval(animation);
+        }
+      }
+
+      function startAnimation(){
+        animation = setInterval(nextDegree,10);
+      }
+
+      startAnimation();
+
+    }
+
+    function getCursorPosition(e) {
+        var x;
+        var y;
+        if (e.pageX || e.pageY) {
+            x = e.pageX;
+            y = e.pageY;
+        }
+        else {
+            x = e.clientX + document.body.scrollLeft +
+                document.documentElement.scrollLeft;
+            y = e.clientY + document.body.scrollTop +
+                document.documentElement.scrollTop;
+        }
+        // Convert to coordinates relative to the canvas
+        x -= gCanvasElement.offsetLeft;
+        y -= gCanvasElement.offsetTop;
+
+        return [x,y]
+    }
+
+    function initElement() {
+      var p = document.getElementById('canvas');
+      // NOTE: showAlert(); or showAlert(param); will NOT work here.
+      // Must be a reference to a function name, not a function call.
+      p.onclick = getCursorPosition
+    };
+
+  </script>
+ </head>
+ <body onload="bearingCompass();">
+   <canvas id="canvas" width="500" height="500"></canvas>
+ </body>
+</html>
